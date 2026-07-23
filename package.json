@@ -22,6 +22,9 @@
     "LICENSE"
   ],
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "bin": {
     "github-mcp": "dist/index.js"
   },
