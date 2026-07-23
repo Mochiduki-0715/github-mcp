@@ -1,0 +1,44 @@
+{
+  "name": "github-mcp",
+  "version": "0.1.0",
+  "description": "MCP server exposing GitHub issues, pull requests, repository administration, local git, and Obsidian sync to AI agents (Claude Code, Codex)",
+  "license": "MIT",
+  "author": "Mochiduki-0715",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mochiduki-0715/github-mcp.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "github",
+    "claude-code",
+    "codex",
+    "ai-agent"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "bin": {
+    "github-mcp": "dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "tsc && node --test dist/*.test.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@octokit/rest": "^21.0.0",
+    "simple-git": "^3.27.0",
+    "gray-matter": "^4.0.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "typescript": "^7.0.2"
+  }
+}
