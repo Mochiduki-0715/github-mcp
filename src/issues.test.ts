@@ -1,6 +1,6 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { listIssues, getIssue, createIssue, closeIssue, searchIssuesAndPrs, type IssuesOctokit } from "./issues.js";
+import { listIssues, getIssue, createIssue, updateIssue, closeIssue, searchIssuesAndPrs, type IssuesOctokit } from "./issues.js";
 
 function fakeIssue(overrides: Partial<any> = {}) {
   return {
@@ -105,6 +105,22 @@ describe("createIssue", () => {
     const issue = await createIssue("o", "r", "New", undefined, undefined, undefined, client);
     assert.equal(issue.number, 5);
     assert.equal(issue.title, "New");
+  });
+});
+
+describe("updateIssue", () => {
+  test("returns a summary reflecting the update", async () => {
+    const client: IssuesOctokit = {
+      rest: {
+        issues: {
+          update: (async () => ({ data: fakeIssue({ title: "Updated title", state: "closed" }) })) as any,
+        } as any,
+        search: {} as any,
+      },
+    };
+    const issue = await updateIssue("o", "r", 1, { title: "Updated title", state: "closed" }, client);
+    assert.equal(issue.title, "Updated title");
+    assert.equal(issue.state, "closed");
   });
 });
 

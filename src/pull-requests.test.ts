@@ -9,6 +9,8 @@ import {
   closePullRequest,
   getPullRequestReviewComment,
   listPullRequestReviewComments,
+  updatePullRequest,
+  requestPullRequestReviewers,
   type PullRequestsOctokit,
 } from "./pull-requests.js";
 
@@ -169,6 +171,48 @@ describe("listPullRequestReviewComments", () => {
     const comments = await listPullRequestReviewComments("o", "r", 1, client);
     assert.equal(comments.length, 1);
     assert.equal(comments[0].body, "Please fix this.");
+  });
+});
+
+describe("updatePullRequest", () => {
+  test("returns a summary reflecting the update", async () => {
+    const client: PullRequestsOctokit = {
+      rest: {
+        pulls: { update: (async () => ({ data: fakePr({ title: "Updated title", base: { ref: "develop" } }) })) as any } as any,
+        checks: {} as any,
+        issues: {} as any,
+      },
+    };
+    const pr = await updatePullRequest("o", "r", 1, { title: "Updated title", base: "develop" }, client);
+    assert.equal(pr.title, "Updated title");
+    assert.equal(pr.base, "develop");
+  });
+});
+
+describe("requestPullRequestReviewers", () => {
+  test("maps requested reviewers and teams", async () => {
+    const client: PullRequestsOctokit = {
+      rest: {
+        pulls: {
+          requestReviewers: (async () => ({
+            data: { requested_reviewers: [{ login: "alice" }], requested_teams: [{ slug: "core" }] },
+          })) as any,
+        } as any,
+        checks: {} as any,
+        issues: {} as any,
+      },
+    };
+    const result = await requestPullRequestReviewers("o", "r", 1, ["alice"], undefined, client);
+    assert.deepEqual(result.requested_reviewers, ["alice"]);
+    assert.deepEqual(result.requested_teams, ["core"]);
+  });
+
+  test("throws when neither reviewers nor team_reviewers given", async () => {
+    const client: PullRequestsOctokit = { rest: { pulls: {} as any, checks: {} as any, issues: {} as any } };
+    await assert.rejects(
+      () => requestPullRequestReviewers("o", "r", 1, undefined, undefined, client),
+      /requires at least one of/,
+    );
   });
 });
 
