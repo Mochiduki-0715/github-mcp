@@ -3,7 +3,10 @@ import { githubClient, toActionableError } from "./github-client.js";
 
 export interface PullRequestsOctokit {
   rest: {
-    pulls: Pick<Octokit["rest"]["pulls"], "list" | "get" | "create" | "createReview" | "merge" | "update">;
+    pulls: Pick<
+      Octokit["rest"]["pulls"],
+      "list" | "get" | "create" | "createReview" | "merge" | "update" | "getReviewComment" | "listReviewComments"
+    >;
     checks: Pick<Octokit["rest"]["checks"], "listForRef">;
     issues: Pick<Octokit["rest"]["issues"], "createComment">;
   };
@@ -162,6 +165,60 @@ export async function mergePullRequest(
     return { merged: data.merged, sha: data.sha, message: data.message };
   } catch (err) {
     throw toActionableError(err, `merging pull request #${pullNumber}`);
+  }
+}
+
+export interface ReviewCommentSummary {
+  id: number;
+  user: string | undefined;
+  body: string;
+  path: string;
+  line: number | null;
+  diff_hunk: string;
+  in_reply_to_id: number | undefined;
+  html_url: string;
+  created_at: string;
+}
+
+function toReviewCommentSummary(c: any): ReviewCommentSummary {
+  return {
+    id: c.id,
+    user: c.user?.login,
+    body: c.body,
+    path: c.path,
+    line: c.line ?? c.original_line ?? null,
+    diff_hunk: c.diff_hunk,
+    in_reply_to_id: c.in_reply_to_id,
+    html_url: c.html_url,
+    created_at: c.created_at,
+  };
+}
+
+export async function getPullRequestReviewComment(
+  owner: string,
+  repo: string,
+  commentId: number,
+  client: PullRequestsOctokit = githubClient(owner),
+): Promise<ReviewCommentSummary> {
+  try {
+    const { data } = await client.rest.pulls.getReviewComment({ owner, repo, comment_id: commentId });
+    return toReviewCommentSummary(data);
+  } catch (err) {
+    throw toActionableError(err, `fetching review comment #${commentId}`);
+  }
+}
+
+export async function listPullRequestReviewComments(
+  owner: string,
+  repo: string,
+  pullNumber: number,
+  client: PullRequestsOctokit = githubClient(owner),
+): Promise<ReviewCommentSummary[]> {
+  try {
+    const { data } = await client.rest.pulls.listReviewComments({ owner, repo, pull_number: pullNumber, per_page: 100 });
+    return data.map(toReviewCommentSummary);
+  } catch (err) {
+    throw toActionableError(err, `listing review comments for pull request #${pullNumber}`);
   }
 }
 
