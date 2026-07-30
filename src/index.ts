@@ -5,6 +5,7 @@ import { githubToken } from "./github-client.js";
 import { registerIssueTools } from "./tools/issue-tools.js";
 import { registerPullRequestTools } from "./tools/pr-tools.js";
 import { registerRepoAdminTools } from "./tools/repo-admin-tools.js";
+import { registerActionsTools } from "./tools/actions-tools.js";
 import { registerLocalGitTools } from "./tools/local-git-tools.js";
 import { registerSyncTools } from "./tools/sync-tools.js";
 
@@ -13,6 +14,7 @@ const server = new McpServer({ name: "github-mcp", version: "0.1.0" });
 registerIssueTools(server);
 registerPullRequestTools(server);
 registerRepoAdminTools(server);
+registerActionsTools(server);
 registerLocalGitTools(server);
 registerSyncTools(server);
 
