@@ -93,6 +93,16 @@ OBSIDIAN_VAULT_PATH = "/path/to/your/vault"
 | `update_repository_settings` | Update visibility/default branch/feature toggles — `confirm: true` required when changing `private` |
 | `get_rate_limit` | Check current GitHub API rate limit status |
 
+### GitHub Actions
+
+| Tool | Description |
+|---|---|
+| `list_workflows` | List workflows defined in a repository |
+| `list_workflow_runs` | List workflow runs, optionally filtered by workflow, branch, or status |
+| `get_workflow_run` | Get a run's status/conclusion plus its jobs and steps — see what failed without downloading logs |
+| `trigger_workflow` | Manually trigger a `workflow_dispatch` run |
+| `cancel_workflow_run` | Cancel a running workflow run |
+
 ### Local git
 
 | Tool | Description |
@@ -121,7 +131,10 @@ Runs the TypeScript build followed by Node's built-in test runner
 Octokit clients and temporary git repositories/vaults — no network access or
 real `GITHUB_TOKEN` is required. HTTPS push and live GitHub API calls are not
 covered by automated tests; verify those manually against a scratch
-repository.
+repository. In particular, `trigger_workflow` and `cancel_workflow_run` are
+only covered against a fake client — they are not exercised against a live
+repository, since doing so would require a scratch workflow safe to invoke
+and cancel.
 
 ## Safety
 
