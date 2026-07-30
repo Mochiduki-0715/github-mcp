@@ -128,6 +128,21 @@ export async function commentOnIssue(
   }
 }
 
+export async function updateIssue(
+  owner: string,
+  repo: string,
+  issueNumber: number,
+  opts: { title?: string; body?: string; state?: "open" | "closed"; labels?: string[]; assignees?: string[] },
+  client: IssuesOctokit = githubClient(owner),
+): Promise<IssueSummary> {
+  try {
+    const { data } = await client.rest.issues.update({ owner, repo, issue_number: issueNumber, ...opts });
+    return toSummary(data);
+  } catch (err) {
+    throw toActionableError(err, `updating issue #${issueNumber}`);
+  }
+}
+
 export async function closeIssue(
   owner: string,
   repo: string,

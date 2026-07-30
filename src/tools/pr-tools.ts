@@ -10,6 +10,8 @@ import {
   closePullRequest,
   getPullRequestReviewComment,
   listPullRequestReviewComments,
+  updatePullRequest,
+  requestPullRequestReviewers,
 } from "../pull-requests.js";
 import { ok, fail } from "../tool-helpers.js";
 
@@ -177,6 +179,50 @@ export function registerPullRequestTools(server: McpServer): void {
     async ({ owner, repo, pull_number }) => {
       try {
         return ok(await listPullRequestReviewComments(owner, repo, pull_number));
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  );
+
+  server.registerTool(
+    "update_pull_request",
+    {
+      description: "Update an existing pull request's title, body, base branch, or state.",
+      inputSchema: {
+        owner: z.string().describe("Repository owner (user or organization)"),
+        repo: z.string().describe("Repository name"),
+        pull_number: z.number().int().describe("Pull request number"),
+        title: z.string().min(1).optional().describe("New title"),
+        body: z.string().optional().describe("New body (markdown)"),
+        base: z.string().optional().describe("New base branch"),
+        state: z.enum(["open", "closed"]).optional().describe("New state"),
+      },
+    },
+    async ({ owner, repo, pull_number, title, body, base, state }) => {
+      try {
+        return ok(await updatePullRequest(owner, repo, pull_number, { title, body, base, state }));
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  );
+
+  server.registerTool(
+    "request_pull_request_reviewers",
+    {
+      description: "Request review from users and/or teams on a pull request.",
+      inputSchema: {
+        owner: z.string().describe("Repository owner (user or organization)"),
+        repo: z.string().describe("Repository name"),
+        pull_number: z.number().int().describe("Pull request number"),
+        reviewers: z.array(z.string()).optional().describe("Usernames to request review from"),
+        team_reviewers: z.array(z.string()).optional().describe("Team slugs to request review from"),
+      },
+    },
+    async ({ owner, repo, pull_number, reviewers, team_reviewers }) => {
+      try {
+        return ok(await requestPullRequestReviewers(owner, repo, pull_number, reviewers, team_reviewers));
       } catch (err) {
         return fail(err);
       }

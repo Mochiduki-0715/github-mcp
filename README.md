@@ -69,6 +69,7 @@ OBSIDIAN_VAULT_PATH = "/path/to/your/vault"
 | `search_issues_and_prs` | Search issues/PRs by keyword, optionally scoped to a repo |
 | `create_issue` | Open a new issue |
 | `comment_on_issue` | Add a comment to an issue or pull request |
+| `update_issue` | Update an issue's title, body, state, labels, or assignees |
 | `close_issue` | Close an issue, optionally with a closing comment |
 
 ### Pull Requests
@@ -81,6 +82,8 @@ OBSIDIAN_VAULT_PATH = "/path/to/your/vault"
 | `review_pull_request` | Approve, request changes, or comment (body required unless approving) |
 | `get_pull_request_checks` | Get CI check run statuses for a PR's latest commit |
 | `merge_pull_request` | Merge a PR — irreversible, requires `confirm: true` |
+| `update_pull_request` | Update a PR's title, body, base branch, or state |
+| `request_pull_request_reviewers` | Request review from users and/or teams |
 | `close_pull_request` | Close a PR without merging |
 
 ### Repository administration

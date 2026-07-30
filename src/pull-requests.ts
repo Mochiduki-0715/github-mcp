@@ -5,7 +5,7 @@ export interface PullRequestsOctokit {
   rest: {
     pulls: Pick<
       Octokit["rest"]["pulls"],
-      "list" | "get" | "create" | "createReview" | "merge" | "update" | "getReviewComment" | "listReviewComments"
+      "list" | "get" | "create" | "createReview" | "merge" | "update" | "getReviewComment" | "listReviewComments" | "requestReviewers"
     >;
     checks: Pick<Octokit["rest"]["checks"], "listForRef">;
     issues: Pick<Octokit["rest"]["issues"], "createComment">;
@@ -219,6 +219,49 @@ export async function listPullRequestReviewComments(
     return data.map(toReviewCommentSummary);
   } catch (err) {
     throw toActionableError(err, `listing review comments for pull request #${pullNumber}`);
+  }
+}
+
+export async function updatePullRequest(
+  owner: string,
+  repo: string,
+  pullNumber: number,
+  opts: { title?: string; body?: string; base?: string; state?: "open" | "closed" },
+  client: PullRequestsOctokit = githubClient(owner),
+): Promise<PullRequestSummary> {
+  try {
+    const { data } = await client.rest.pulls.update({ owner, repo, pull_number: pullNumber, ...opts });
+    return toSummary(data);
+  } catch (err) {
+    throw toActionableError(err, `updating pull request #${pullNumber}`);
+  }
+}
+
+export async function requestPullRequestReviewers(
+  owner: string,
+  repo: string,
+  pullNumber: number,
+  reviewers?: string[],
+  teamReviewers?: string[],
+  client: PullRequestsOctokit = githubClient(owner),
+): Promise<{ requested_reviewers: string[]; requested_teams: string[] }> {
+  if (!reviewers?.length && !teamReviewers?.length) {
+    throw new Error("request_pull_request_reviewers requires at least one of 'reviewers' or 'team_reviewers'.");
+  }
+  try {
+    const { data } = await client.rest.pulls.requestReviewers({
+      owner,
+      repo,
+      pull_number: pullNumber,
+      reviewers,
+      team_reviewers: teamReviewers,
+    });
+    return {
+      requested_reviewers: (data.requested_reviewers ?? []).map((u: any) => u.login),
+      requested_teams: (data.requested_teams ?? []).map((t: any) => t.slug),
+    };
+  } catch (err) {
+    throw toActionableError(err, `requesting reviewers on pull request #${pullNumber}`);
   }
 }
 

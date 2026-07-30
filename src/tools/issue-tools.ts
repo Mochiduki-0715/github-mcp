@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { listIssues, getIssue, searchIssuesAndPrs, createIssue, commentOnIssue, closeIssue } from "../issues.js";
+import { listIssues, getIssue, searchIssuesAndPrs, createIssue, commentOnIssue, updateIssue, closeIssue } from "../issues.js";
 import { ok, fail } from "../tool-helpers.js";
 
 export function registerIssueTools(server: McpServer): void {
@@ -102,6 +102,31 @@ export function registerIssueTools(server: McpServer): void {
     async ({ owner, repo, issue_number, body }) => {
       try {
         return ok(await commentOnIssue(owner, repo, issue_number, body));
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  );
+
+  server.registerTool(
+    "update_issue",
+    {
+      description:
+        "Update an existing issue's title, body, state, labels, or assignees. When provided, 'labels'/'assignees' fully replace the existing set.",
+      inputSchema: {
+        owner: z.string().describe("Repository owner (user or organization)"),
+        repo: z.string().describe("Repository name"),
+        issue_number: z.number().int().describe("Issue number"),
+        title: z.string().min(1).optional().describe("New title"),
+        body: z.string().optional().describe("New body (markdown)"),
+        state: z.enum(["open", "closed"]).optional().describe("New state"),
+        labels: z.array(z.string()).optional().describe("Replaces the full label set"),
+        assignees: z.array(z.string()).optional().describe("Replaces the full assignee set"),
+      },
+    },
+    async ({ owner, repo, issue_number, title, body, state, labels, assignees }) => {
+      try {
+        return ok(await updateIssue(owner, repo, issue_number, { title, body, state, labels, assignees }));
       } catch (err) {
         return fail(err);
       }
