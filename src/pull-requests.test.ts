@@ -7,6 +7,8 @@ import {
   getPullRequestChecks,
   mergePullRequest,
   closePullRequest,
+  getPullRequestReviewComment,
+  listPullRequestReviewComments,
   type PullRequestsOctokit,
 } from "./pull-requests.js";
 
@@ -121,6 +123,52 @@ describe("mergePullRequest", () => {
     };
     const result = await mergePullRequest("o", "r", 1, true, {}, client);
     assert.equal(result.merged, true);
+  });
+});
+
+function fakeReviewComment(overrides: Partial<any> = {}) {
+  return {
+    id: 3642374894,
+    user: { login: "reviewer" },
+    body: "Please fix this.",
+    path: "src/app/foo.php",
+    line: 42,
+    diff_hunk: "@@ -1,3 +1,3 @@",
+    in_reply_to_id: undefined,
+    html_url: "https://github.com/o/r/pull/1#discussion_r3642374894",
+    created_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+describe("getPullRequestReviewComment", () => {
+  test("maps a single review comment", async () => {
+    const client: PullRequestsOctokit = {
+      rest: {
+        pulls: { getReviewComment: (async () => ({ data: fakeReviewComment() })) as any } as any,
+        checks: {} as any,
+        issues: {} as any,
+      },
+    };
+    const comment = await getPullRequestReviewComment("o", "r", 3642374894, client);
+    assert.equal(comment.id, 3642374894);
+    assert.equal(comment.user, "reviewer");
+    assert.equal(comment.path, "src/app/foo.php");
+  });
+});
+
+describe("listPullRequestReviewComments", () => {
+  test("maps a list of review comments", async () => {
+    const client: PullRequestsOctokit = {
+      rest: {
+        pulls: { listReviewComments: (async () => ({ data: [fakeReviewComment()] })) as any } as any,
+        checks: {} as any,
+        issues: {} as any,
+      },
+    };
+    const comments = await listPullRequestReviewComments("o", "r", 1, client);
+    assert.equal(comments.length, 1);
+    assert.equal(comments[0].body, "Please fix this.");
   });
 });
 

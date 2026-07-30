@@ -8,6 +8,8 @@ import {
   getPullRequestChecks,
   mergePullRequest,
   closePullRequest,
+  getPullRequestReviewComment,
+  listPullRequestReviewComments,
 } from "../pull-requests.js";
 import { ok, fail } from "../tool-helpers.js";
 
@@ -136,6 +138,45 @@ export function registerPullRequestTools(server: McpServer): void {
     async ({ owner, repo, pull_number, merge_method, commit_title, commit_message, confirm }) => {
       try {
         return ok(await mergePullRequest(owner, repo, pull_number, confirm, { merge_method, commit_title, commit_message }));
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  );
+
+  server.registerTool(
+    "get_pull_request_review_comment",
+    {
+      description:
+        "Get a single inline review comment on a pull request by its comment ID (the numeric ID in a GitHub PR discussion URL, e.g. '#discussion_r1234567890' -> 1234567890).",
+      inputSchema: {
+        owner: z.string().describe("Repository owner (user or organization)"),
+        repo: z.string().describe("Repository name"),
+        comment_id: z.number().int().describe("Review comment ID (from a '#discussion_r<id>' URL fragment)"),
+      },
+    },
+    async ({ owner, repo, comment_id }) => {
+      try {
+        return ok(await getPullRequestReviewComment(owner, repo, comment_id));
+      } catch (err) {
+        return fail(err);
+      }
+    },
+  );
+
+  server.registerTool(
+    "list_pull_request_review_comments",
+    {
+      description: "List all inline review (diff) comments on a pull request.",
+      inputSchema: {
+        owner: z.string().describe("Repository owner (user or organization)"),
+        repo: z.string().describe("Repository name"),
+        pull_number: z.number().int().describe("Pull request number"),
+      },
+    },
+    async ({ owner, repo, pull_number }) => {
+      try {
+        return ok(await listPullRequestReviewComments(owner, repo, pull_number));
       } catch (err) {
         return fail(err);
       }
